@@ -6,7 +6,8 @@
 #include <stdlib.h>
 #include <cstdlib>
 #include <ctime>
-#include <iostream>
+#include <sys/time.h>
+#include <iostream> using namespace std;
 
 #define N 65536 // 256 * 256
 
@@ -52,7 +53,6 @@ int main(){
     // Allocate memory on the device
     cudaMalloc( (void **) &dev_U, N*sizeof(float) );
     cudaMalloc( (void **) &dev_V, N*sizeof(float) );
-
 
     // Set up problem on the host
     // Create seed for random number generator
@@ -112,8 +112,45 @@ int main(){
         gpuResult = gpuResult + partialSum[i];
 
     // TODO: Implement CPU calculation and time
+    // Serial implementation
+    int W[N];
 
-    // TODO: Calculate relative error
+    // Start CPU timer
+    struct timeval t1, t2;
+    float elapsedTime3;
+
+    // Get CPU start time
+    gettimeofday(&t1, NULL);
+
+    // Pairwise multiplication
+    for (int i = 0; i < N; ++i) {
+        float randomU == drand48();
+        W[i] = U[i] * V[i];
+    }
+
+    // Get CPU end time
+    gettimeofday(&t2, NULL);
+
+    // Calculate CPU elapsed time
+    elapsedTime3 = (t2.tv_sec - t1.tv_sec) * 1000.0; // convert seconds to milliseconds
+    elapsedTime3 += (t2.tv_usec - t1.tv_usec) / 1000.0; // us to ms
+
+
+    // Summation
+    float cpuResult = 0.0;
+    for (int i = 0; i < N; ++i)
+        cpuResult = cpuResult + W[i];
+
+    // Calculate relative error
+    float relativeError = (cpuResult - gpuResult) / cpuResult;
+    if (relativeError < 0)
+        relativeError = relativeError * -1;
+
+    // Print results
+    cout << "Elapsed time including memory copies: " << elapsedTime << endl;
+    cout << "Elapsed time excluding memory copies: " << elapsedTime2 << endl;
+    cout << "Elapsed time for CPU calculation: " << elapsedTime3 << endl;
+    cout << "Relative error: " << relativeError << endl;
 
     // Clean up
     cudaFree( dev_U );
