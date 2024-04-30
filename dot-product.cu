@@ -13,27 +13,27 @@
 
 __global__
 void dotp( float *u, float *v, float *partialSums, int n ){
-    __shared__ float localCache[BLOCK_SIZE];
+    __shared__ float localCache[256];
 
     // Compute localCache[i]
     int tidx = threadIdx.x + blockIdx.x * blockDim.x;
-    localCache[threadIdx.x = U[tidx] * V[tidx];
+    localCache[threadIdx.x] = U[tidx] * V[tidx];
 
     // Synchronize Threads
     __syncthreads();
 
     // Sum localCache using parallel reduction
-    cacheIndex = threadIdx.x;
+    int cacheIndex = threadIdx.x;
     int i = blockDim.x / 2;
     while (i > 0){
         if (cacheIndex < i)
-            localCache[cacheindex] = localCache[cacheIndex] + localCache[cacheIndex + i];
+            localCache[cacheIndex] = localCache[cacheIndex] + localCache[cacheIndex + i];
         __syncthreads();
         i = i / 2;
     }
 
     if (cacheIndex == 0)
-        partialSum[blockIdx.x] = localCache[cacheIdx];
+        partialSum[blockIdx.x] = localCache[cacheIndex];
 }
 
 int main(){
@@ -60,10 +60,10 @@ int main(){
 
     // Set vector contents to random numbers
     for (int i = 0; i < N; ++i) {
-        float randomU == drand48();
+        float randomU = drand48();
         U[i] = random U;
 
-        float randomV == drand48();
+        float randomV = drand48();
         V[i] = random V;
     }
 
@@ -113,7 +113,7 @@ int main(){
 
     // TODO: Implement CPU calculation and time
     // Serial implementation
-    int W[N];
+    float *W;
 
     // Start CPU timer
     struct timeval t1, t2;
