@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <cstdlib>
 #include <ctime>
+#include <iostream>
 
 #define N 65536 // 256 * 256
 
@@ -21,7 +22,6 @@ void dotp( float *u, float *v, float *partialSums, int n ){
     __syncthreads();
 
     // Sum localCache using parallel reduction
-
     cacheIndex = threadIdx.x;
     int i = blockDim.x / 2;
     while (i > 0){
@@ -67,15 +67,21 @@ int main(){
         V[i] = random V;
     }
 
-    // Copy data to the GPU
-    cudaMemcpy( dev_U, U, N*sizeof(float), cudaMemcpyHostToDevice );
-    cudaMemcpy( dev_V, V, N*sizeof(float), cudaMemcpyHostToDevice );
-
-    // Start timer
+    // Start timer for including memory copies
     cudaEvent_t start, stop;
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
     cudaEventRecord(start,0);
+
+    // Copy data to the GPU
+    cudaMemcpy( dev_U, U, N*sizeof(float), cudaMemcpyHostToDevice );
+    cudaMemcpy( dev_V, V, N*sizeof(float), cudaMemcpyHostToDevice );
+
+    // Start timer not including memory copies
+    cudaEvent_t start2, stop2;
+    cudaEventCreate(&start2);
+    cudaEventCreate(&stop2);
+    cudaEventRecord(start2,0);
 
     // Call kernel
     dotp<<<numBlocks, threadsPerBlock>>>( dev_U, dev_V, dev_partialSum, N );
@@ -83,15 +89,22 @@ int main(){
     // Synchronize
     cudaDeviceSynchronize();
 
-    // End timer
-    cudaEventRecord(stop, 0);
+    // End timer not including memory copies
+    cudaEventRecord(stop2, 0);
 
     // Copy results to host
     cudaMemcpy( partialSum, dev_partialSum, numBlocks*sizeof(float), cudaMemCpyDeviceToHost);
 
-    // Calculate elapsed time
+    // End timer including memory copies
+    cudaEventRecord(stop, 0);
+
+    // Calculate elapsed time including memory copies
     float elapsedTime;
     cudaEventElapsedTime(&elapsedTime, start, stop);
+
+    // Calculate elapsed time  not including memory copies
+    float elapsedTime2;
+    cudaEventElapsedTime(&elapsedTime2, start2, stop2);
 
     // Sum partial sums
     float gpuResult = 0.0;
