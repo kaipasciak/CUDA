@@ -10,8 +10,8 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 
-#define N 5000  // Dimension of the matrix and vector
-#define THREADS_PER_BLOCK 256  // Number of threads per block
+#define N 5000  
+#define THREADS_PER_BLOCK 256  
 
 using namespace std;
 
